@@ -1,5 +1,6 @@
 import { BaseEntity } from 'src/common/base.entity';
-import { Entity, Column } from 'typeorm';
+import { WalletConnection } from 'src/wallet/entities/wallet-connection.entity';
+import { Entity, Column, OneToMany } from 'typeorm';
 
 @Entity()
 export class User extends BaseEntity {
@@ -8,4 +9,8 @@ export class User extends BaseEntity {
 
   @Column({ unique: true })
   email: string;
+
+  @OneToMany(() => WalletConnection, wallet => wallet.user)
+  wallets: WalletConnection[];
+
 }
