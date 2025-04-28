@@ -7,6 +7,7 @@ import { UserModule } from './user/user.module';
 import { WalletModule } from './wallet/wallet.module';
 import { AuthModule } from './auth/auth.module';
 import { NFTMetadataModule } from './nft-metadata/nft-metadata.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -25,10 +26,10 @@ import { NFTMetadataModule } from './nft-metadata/nft-metadata.module';
       synchronize: true, // Don't use in production unless you know what you're doing
     }),
     
-    UserModule,
     WalletModule,
     AuthModule,
     NFTMetadataModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
