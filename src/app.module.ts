@@ -3,11 +3,11 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UserModule } from './user/user.module';
 import { WalletModule } from './wallet/wallet.module';
 import { AuthModule } from './auth/auth.module';
 import { NFTMetadataModule } from './nft-metadata/nft-metadata.module';
 import { UsersModule } from './users/users.module';
+import { AchievementsModule } from './modules/achievements/achievements.module';
 
 @Module({
   imports: [
@@ -30,6 +30,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     NFTMetadataModule,
     UsersModule,
+    AchievementsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
