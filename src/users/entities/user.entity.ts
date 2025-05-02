@@ -1,7 +1,23 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
-import { IsEmail, IsNotEmpty, Length, IsBoolean, IsOptional, IsDate } from 'class-validator';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+} from 'typeorm';
+import {
+  IsEmail,
+  IsNotEmpty,
+  Length,
+  IsBoolean,
+  IsOptional,
+  IsDate,
+} from 'class-validator';
 import { Exclude } from 'class-transformer';
 import { UserPreference } from './user-preference.entity';
+import { UserAchievement } from '../../modules/achievements/entities/user-achievement.entity';
+import { AchievementProgress } from '../../modules/achievements/entities/achievement-progress.entity';
 
 @Entity('users')
 export class User {
@@ -77,4 +93,10 @@ export class User {
 
   @OneToMany(() => UserPreference, preference => preference.user)
   preferences: UserPreference[];
+
+  @OneToMany(() => UserAchievement, userAchievement => userAchievement.user)
+  achievements: UserAchievement[];
+
+  @OneToMany(() => AchievementProgress, achievementProgress => achievementProgress.user)
+  achievementProgresses: AchievementProgress[];
 }

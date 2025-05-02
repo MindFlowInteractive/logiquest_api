@@ -1,6 +1,7 @@
 // achievement-progress.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { User } from './user.entity';
+import { User } from '../../../users/entities/user.entity';
+
 
 @Entity('achievement_progress')
 export class AchievementProgress {
