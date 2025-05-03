@@ -1,23 +1,44 @@
-import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
-import { JwtStrategy } from './strategies/jwt.strategy';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Module, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { APP_GUARD } from '@nestjs/core';
+import { User } from '../users/entities/user.entity';
+import { Role } from './entities/role.entity';
+import { Permission } from './entities/permission.entity';
+import { RoleRepository } from './repositories/role.repository';
+import { PermissionRepository } from './repositories/permission.repository';
+import { AuthorizationService } from './services/authorization.service';
+import { PermissionsGuard } from './guards/permissions.guard';
+import { AuthorizationMiddleware } from './middleware/authorization.middleware';
+import { RoleController } from './controllers/role.controller';
+import { PermissionController } from './controllers/permission.controller';
 
 @Module({
   imports: [
-    ConfigModule, 
-    PassportModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1d' },
-      }),
-    }),
+    TypeOrmModule.forFeature([User, Role, Permission]),
   ],
-  providers: [JwtStrategy],
-  exports: [JwtModule],
+  providers: [
+    RoleRepository,
+    PermissionRepository,
+    AuthorizationService,
+    {
+      provide: APP_GUARD,
+      useClass: PermissionsGuard,
+    },
+  ],
+  controllers: [
+    RoleController,
+    PermissionController,
+  ],
+  exports: [
+    AuthorizationService,
+    RoleRepository,
+    PermissionRepository,
+  ],
 })
-export class AuthModule {}
+export class AuthModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(AuthorizationMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+}
