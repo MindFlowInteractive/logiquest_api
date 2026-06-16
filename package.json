@@ -25,8 +25,9 @@
     "@nestjs/common": "^11.1.27",
     "@nestjs/core": "^11.1.27",
     "@nestjs/platform-express": "^11.1.27",
-    "reflect-metadata": "^0.2.2"
-  },
+  "reflect-metadata": "^0.2.2",
+    "@nestjs/event-emitter": "^2.0.0"
+  }
   "devDependencies": {
     "@nestjs/cli": "^11.0.23",
     "@nestjs/schematics": "^11.1.0",
