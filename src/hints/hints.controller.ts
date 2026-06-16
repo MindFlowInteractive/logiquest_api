@@ -9,8 +9,8 @@ export class HintsController {
 
   @Post('reveal')
   async revealHint(@Body() revealHintDto: RevealHintDto) {
-    const { sessionId, puzzleId } = revealHintDto;
-    return this.hintsService.revealNextHint(sessionId, puzzleId);
+    const { sessionId } = revealHintDto;
+    return this.hintsService.revealNextHint(sessionId);
   }
 
   @UseGuards(AdminGuard)
