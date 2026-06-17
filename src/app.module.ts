@@ -6,7 +6,7 @@ import { AppService } from './app.service';
 import { WalletModule } from './wallet/wallet.module';
 import { AuthModule } from './auth/auth.module';
 import { NFTMetadataModule } from './nft-metadata/nft-metadata.module';
-import { UsersModule } from './users/users.module';
+import { RewardsModule } from './rewards/rewards.module';
 import { AchievementsModule } from './modules/achievements/achievements.module';
 
 @Module({
@@ -29,7 +29,7 @@ import { AchievementsModule } from './modules/achievements/achievements.module';
     WalletModule,
     AuthModule,
     NFTMetadataModule,
-    UsersModule,
+    RewardsModule,
     AchievementsModule,
   ],
   controllers: [AppController],
