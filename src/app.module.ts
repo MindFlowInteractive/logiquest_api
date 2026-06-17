@@ -26,13 +26,15 @@ import { AuthModule } from './auth/auth.module';
     }),
     AuthModule,
     AnalyticsModule,
-    EventEmitterModule.forRoot({
-      global: true,
-    }),
+    EventEmitterModule.forRoot({ global: true }),
     ScoringModule,
     AchievementsModule,
     RewardsModule,
     NotificationsModule,
+    AuthModule,
+    AdminModule,
+    AuditModule,
+    SecurityModule,
   ],
   providers: [EventService],
 })
