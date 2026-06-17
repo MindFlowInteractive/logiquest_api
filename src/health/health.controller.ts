@@ -5,16 +5,22 @@ import {
   HttpStatus,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { Public } from '../common/decorators/public.decorator';
 import type { HealthCheckResult } from './health.types';
 import { HealthService } from './health.service';
 
 /**
- * Exposes Kubernetes-style health probes. The controller is marked `@Public()`
- * so it is excluded from JWT authentication once a global auth guard is added —
- * orchestrators and load balancers must reach these endpoints unauthenticated.
+ * Exposes Kubernetes-style health probes.
+ *
+ * - `@Public()` excludes the routes from JWT authentication once a global auth
+ *   guard is added — orchestrators and load balancers must reach these
+ *   endpoints unauthenticated.
+ * - `@SkipThrottle()` exempts them from the global rate limiter, since probes
+ *   are polled frequently and must not be throttled out of service.
  */
 @Public()
+@SkipThrottle()
 @Controller('health')
 export class HealthController {
   constructor(private readonly health: HealthService) {}

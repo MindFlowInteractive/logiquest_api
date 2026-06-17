@@ -1,20 +1,29 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { DATABASE_PINGER, type DatabasePinger } from '../src/health/pingers/database-pinger';
+import * as request from 'supertest';
+import { HealthController } from './health.controller';
+import { HealthService } from './health.service';
+import { DatabaseHealthIndicator } from './indicators/database.health-indicator';
+import { DATABASE_PINGER, type DatabasePinger } from './pingers/database-pinger';
 
-describe('Health endpoints (e2e)', () => {
+/**
+ * Boots a minimal Nest application wired with just the health components (the
+ * database pinger is mocked) to assert real HTTP status codes and response
+ * bodies without requiring a live database.
+ */
+describe('Health endpoints (integration)', () => {
   let app: INestApplication;
   const pinger: jest.Mocked<DatabasePinger> = { ping: jest.fn() };
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [AppModule],
-    })
-      .overrideProvider(DATABASE_PINGER)
-      .useValue(pinger)
-      .compile();
+      controllers: [HealthController],
+      providers: [
+        HealthService,
+        DatabaseHealthIndicator,
+        { provide: DATABASE_PINGER, useValue: pinger },
+      ],
+    }).compile();
 
     app = moduleRef.createNestApplication();
     await app.init();
