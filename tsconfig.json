@@ -6,6 +6,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "target": "ES2024",
     "strictNullChecks": true,
@@ -14,6 +15,7 @@
     "rootDir": "./",
     "baseUrl": "./",
     "skipLibCheck": true,
-    "incremental": true
+    "incremental": true,
+    "types": ["node", "jest"]
   }
 }
