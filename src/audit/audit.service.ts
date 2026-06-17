@@ -11,7 +11,12 @@ export class AuditService {
   ) {}
 
   async log(action: string, performedBy: string, targetId?: string, metadata?: object): Promise<void> {
-    const log = this.auditLogRepository.create({ action, performedBy, targetId, metadata });
+    const log = this.auditLogRepository.create({
+      action,
+      performedBy,
+      targetId,
+      metadata,
+    });
     await this.auditLogRepository.save(log);
   }
 }

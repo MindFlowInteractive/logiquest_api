@@ -4,23 +4,23 @@ import { Role } from '../../common/enums/role.enum';
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
   @Column()
-  password: string;
+  password!: string;
 
   @Column({ type: 'enum', enum: Role, default: Role.USER })
-  role: Role;
+  role!: Role;
 
   @Column({ default: false })
-  isBanned: boolean;
+  isBanned!: boolean;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }
