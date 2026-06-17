@@ -9,6 +9,10 @@ import { AchievementsModule } from './achievements/achievements.module';
 import { RewardsModule } from './rewards/rewards.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { AuthModule } from './auth/auth.module';
+import { AdminModule } from './admin/admin.module';
+import { AuditModule } from './audit/audit.module';
+import { SecurityModule } from './security/security.module';
 
 @Module({
   imports: [
@@ -24,13 +28,15 @@ import { AnalyticsModule } from './analytics/analytics.module';
       inject: [ConfigService],
     }),
     AnalyticsModule,
-    EventEmitterModule.forRoot({
-      global: true,
-    }),
+    EventEmitterModule.forRoot({ global: true }),
     ScoringModule,
     AchievementsModule,
     RewardsModule,
     NotificationsModule,
+    AuthModule,
+    AdminModule,
+    AuditModule,
+    SecurityModule,
   ],
   providers: [EventService],
 })
