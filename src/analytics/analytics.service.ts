@@ -5,20 +5,20 @@ import { Repository } from 'typeorm';
 import { Session } from './entities/session.entity';
 import { AnalyticsQueryDto } from './dto/analytics-query.dto';
 
-interface PuzzleAnalyticsDto {
+export interface PuzzleAnalyticsDto {
   solveRate: number; // fraction of completed attempts
   averageTime: number; // seconds
   averageScore: number;
   hintUsageRate: number; // average hints per attempt
 }
 
-interface PlayerAnalyticsDto {
+export interface PlayerAnalyticsDto {
   sessionsPlayed: number;
   puzzlesSolved: number;
   averageScore: number;
 }
 
-interface OverviewAnalyticsDto {
+export interface OverviewAnalyticsDto {
   totalSessions: number;
   totalCompleted: number;
   overallSolveRate: number;
