@@ -1,6 +1,6 @@
 // src/analytics/analytics.controller.ts
 import { Controller, Get, Param, Query, UseGuards, UseInterceptors } from '@nestjs/common';
-import { CacheInterceptor } from '@nestjs/common';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { AnalyticsService } from './analytics.service';
 import { AnalyticsQueryDto } from './dto/analytics-query.dto';
 

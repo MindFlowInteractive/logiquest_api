@@ -9,6 +9,7 @@ import { AchievementsModule } from './achievements/achievements.module';
 import { RewardsModule } from './rewards/rewards.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
       }),
       inject: [ConfigService],
     }),
+    AuthModule,
     AnalyticsModule,
     EventEmitterModule.forRoot({
       global: true,
