@@ -1,8 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AppConfigModule } from './config/app-config.module';
-import { ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { DatabaseModule } from './database/database.module';
 import { EventService } from './events/event.service';
 import { ScoringModule } from './scoring/scoring.module';
 import { AchievementsModule } from './achievements/achievements.module';
@@ -19,16 +18,7 @@ import { LoggingMiddleware } from './common/middleware/logging.middleware';
 @Module({
   imports: [
     AppConfigModule,
-    TypeOrmModule.forRootAsync({
-      imports: [AppConfigModule],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        url: config.get('DATABASE_URL'),
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true,
-      }),
-      inject: [ConfigService],
-    }),
+    DatabaseModule,
     AuthModule,
     AnalyticsModule,
     EventEmitterModule.forRoot({ global: true }),
