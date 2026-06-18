@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AppConfigModule } from './config/app-config.module';
 import { DatabaseModule } from './database/database.module';
@@ -12,7 +12,8 @@ import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
 import { AuditModule } from './audit/audit.module';
 import { SecurityModule } from './security/security.module';
-import { NftModule } from './nft/nft.module';
+import { HealthModule } from './health/health.module';
+import { LoggingMiddleware } from './common/middleware/logging.middleware';
 
 @Module({
   imports: [
@@ -28,8 +29,13 @@ import { NftModule } from './nft/nft.module';
     AdminModule,
     AuditModule,
     SecurityModule,
-    NftModule,
+    HealthModule,
   ],
   providers: [EventService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    // Log every inbound request across all routes.
+    consumer.apply(LoggingMiddleware).forRoutes('*');
+  }
+}
