@@ -1,17 +1,15 @@
-import { Module, Injectable } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
-import { EventName } from '../events/events.enum';
-import { AchievementUnlockedPayload } from '../events/event-payloads';
-
-@Injectable()
-export class AchievementsListener {
-  @OnEvent(EventName.AchievementUnlocked)
-  async handleAchievementUnlocked(payload: AchievementUnlockedPayload) {
-    console.log('AchievementsListener received AchievementUnlocked:', payload);
-  }
-}
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AchievementsController } from './achievements.controller';
+import { AchievementsService } from './achievements.service';
+import { AchievementsListener } from './achievements.listener';
+import { Achievement } from './entities/achievement.entity';
+import { PlayerAchievement } from './entities/player-achievement.entity';
 
 @Module({
-  providers: [AchievementsListener],
+  imports: [TypeOrmModule.forFeature([Achievement, PlayerAchievement])],
+  controllers: [AchievementsController],
+  providers: [AchievementsService, AchievementsListener],
+  exports: [AchievementsService],
 })
 export class AchievementsModule {}
