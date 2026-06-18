@@ -15,6 +15,7 @@ import { SecurityModule } from './security/security.module';
 import { HealthModule } from './health/health.module';
 import { LoggingMiddleware } from './common/middleware/logging.middleware';
 import { CategoriesModule } from './categories/categories.module';
+import { PuzzlesModule } from './puzzles/puzzles.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { CategoriesModule } from './categories/categories.module';
     SecurityModule,
     HealthModule,
     CategoriesModule,
+    PuzzlesModule,
   ],
   providers: [EventService],
 })
