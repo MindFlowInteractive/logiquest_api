@@ -1,6 +1,17 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from 'typeorm';
 
-@Entity()
+export enum SessionStatus {
+  ACTIVE = 'active',
+  COMPLETED = 'completed',
+  ABANDONED = 'abandoned',
+}
+
+@Entity('sessions')
 export class Session {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -9,11 +20,20 @@ export class Session {
   userId!: string;
 
   @Column()
-  status!: string;
+  puzzleId!: string;
+
+  @Column({ type: 'enum', enum: SessionStatus, default: SessionStatus.ACTIVE })
+  status!: SessionStatus;
 
   @CreateDateColumn()
-  createdAt!: Date;
+  startedAt!: Date;
 
-  @Column({ nullable: true })
-  endedAt!: Date;
+  @Column({ type: 'timestamp', nullable: true })
+  completedAt!: Date | null;
+
+  @Column({ type: 'int', default: 0 })
+  score!: number;
+
+  @Column({ type: 'int', default: 0 })
+  hintsUsed!: number;
 }

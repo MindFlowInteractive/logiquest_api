@@ -1,33 +1,103 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-
-export interface Session {
-  id: string;
-  puzzleId: string;
-  status: 'ACTIVE' | 'COMPLETED' | 'ABANDONED';
-}
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { LessThan, Repository } from 'typeorm';
+import { Session, SessionStatus } from './entities/session.entity';
+import { CreateSessionDto } from './dto/create-session.dto';
+import { SubmitSolutionDto } from './dto/submit-solution.dto';
 
 @Injectable()
 export class SessionsService {
-  private sessions: Map<string, Session> = new Map();
+  constructor(
+    @InjectRepository(Session)
+    private readonly sessionRepo: Repository<Session>,
+  ) {}
 
-  createSession(id: string, puzzleId: string): Session {
-    const session: Session = { id, puzzleId, status: 'ACTIVE' };
-    this.sessions.set(id, session);
-    return session;
+  async start(userId: string, dto: CreateSessionDto): Promise<Session> {
+    const session = this.sessionRepo.create({
+      userId,
+      puzzleId: dto.puzzleId,
+      status: SessionStatus.ACTIVE,
+    });
+    return this.sessionRepo.save(session);
   }
 
-  getSession(id: string): Session {
-    const session = this.sessions.get(id);
-    if (!session) {
-      throw new NotFoundException(`Session with ID ${id} not found`);
+  async submit(
+    userId: string,
+    sessionId: string,
+    dto: SubmitSolutionDto,
+  ): Promise<Session> {
+    const session = await this.findOwned(userId, sessionId);
+
+    if (session.status !== SessionStatus.ACTIVE) {
+      throw new BadRequestException('Session is not active');
     }
+
+    // Evaluate: accept any non-empty solution as correct for now.
+    // Real puzzle validation would compare dto.solution against puzzle answer.
+    const correct = dto.solution.trim().length > 0;
+
+    session.status = correct ? SessionStatus.COMPLETED : session.status;
+    session.completedAt = correct ? new Date() : null;
+    session.score = correct ? this.calculateScore(session) : 0;
+    if (dto.hintsUsed !== undefined) {
+      session.hintsUsed = dto.hintsUsed;
+    }
+
+    return this.sessionRepo.save(session);
+  }
+
+  async abandon(userId: string, sessionId: string): Promise<Session> {
+    const session = await this.findOwned(userId, sessionId);
+
+    if (session.status !== SessionStatus.ACTIVE) {
+      throw new BadRequestException('Session is not active');
+    }
+
+    session.status = SessionStatus.ABANDONED;
+    session.completedAt = new Date();
+    return this.sessionRepo.save(session);
+  }
+
+  async getById(userId: string, sessionId: string): Promise<Session> {
+    return this.findOwned(userId, sessionId);
+  }
+
+  async autoAbandonStaleSessions(): Promise<number> {
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const stale = await this.sessionRepo.find({
+      where: { status: SessionStatus.ACTIVE, startedAt: LessThan(cutoff) },
+    });
+
+    if (stale.length === 0) return 0;
+
+    const now = new Date();
+    for (const s of stale) {
+      s.status = SessionStatus.ABANDONED;
+      s.completedAt = now;
+    }
+    await this.sessionRepo.save(stale);
+    return stale.length;
+  }
+
+  private async findOwned(userId: string, sessionId: string): Promise<Session> {
+    const session = await this.sessionRepo.findOne({ where: { id: sessionId } });
+    if (!session) throw new NotFoundException('Session not found');
+    if (session.userId !== userId) throw new ForbiddenException('Access denied');
     return session;
   }
 
-  updateSessionStatus(id: string, status: 'ACTIVE' | 'COMPLETED' | 'ABANDONED'): Session {
-    const session = this.getSession(id);
-    session.status = status;
-    this.sessions.set(id, session);
-    return session;
+  private calculateScore(session: Session): number {
+    const elapsed = Math.floor(
+      (Date.now() - session.startedAt.getTime()) / 1000,
+    );
+    const base = 1000;
+    const timePenalty = Math.min(elapsed, 600); // max 600s penalty
+    const hintPenalty = session.hintsUsed * 50;
+    return Math.max(0, base - timePenalty - hintPenalty);
   }
 }

@@ -1,40 +1,20 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AppConfigModule } from './config/app-config.module';
-import { ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { DatabaseModule } from './database/database.module';
 import { EventService } from './events/event.service';
 
 import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
 import { AuditModule } from './audit/audit.module';
 import { SecurityModule } from './security/security.module';
-import { AnalyticsModule } from './analytics/analytics.module';
-import { NotificationsModule } from './notifications/notifications.module';
-import { RewardsModule } from './rewards/rewards.module';
-import { AchievementsModule } from './achievements/achievements.module';
-
-import { ScoringModule } from './scoring/scoring.module';
-import { HintsModule } from './hints/hints.module';
-import { UsersModule } from './users/users.module';
-import { SessionsModule } from './sessions/sessions.module';
+import { HealthModule } from './health/health.module';
+import { LoggingMiddleware } from './common/middleware/logging.middleware';
 
 @Module({
   imports: [
     AppConfigModule,
-    TypeOrmModule.forRootAsync({
-      imports: [AppConfigModule],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        url: config.get('DATABASE_URL'),
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true,
-      }),
-      inject: [ConfigService],
-    }),
-
-    EventEmitterModule.forRoot({ global: true }),
-
+    DatabaseModule,
     AuthModule,
     AnalyticsModule,
     ScoringModule,
@@ -44,14 +24,13 @@ import { SessionsModule } from './sessions/sessions.module';
     AdminModule,
     AuditModule,
     SecurityModule,
-
-    // From feat/scoring-system
-    UsersModule,
-    SessionsModule,
-    HintsModule,
+    HealthModule,
   ],
   providers: [EventService],
 })
-export class AppModule {}
-})
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    // Log every inbound request across all routes.
+    consumer.apply(LoggingMiddleware).forRoutes('*');
+  }
+}
