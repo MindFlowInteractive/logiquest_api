@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { LeaderboardEntry } from './entities/leaderboard-entry.entity';
 import { LeaderboardQueryDto, LeaderboardEntryDto } from './dto/leaderboard.dto';
 
@@ -43,7 +43,7 @@ export class LeaderboardService {
       .orWhere('lb.totalScore = (SELECT totalScore FROM leaderboard_entry WHERE playerId = :userId AND category = :cat) AND lb.createdAt < (SELECT createdAt FROM leaderboard_entry WHERE playerId = :userId AND category = :cat)', { userId, cat: category ?? null });
     const result = await subQuery.getRawOne();
     const rank = Number(result?.cnt ?? 0) + 1;
-    const entry = await this.repo.findOne({ where: { playerId: userId, category: category ?? null } });
+    const entry = await this.repo.findOne({ where: { playerId: userId, category: category ?? IsNull() } });
     if (!entry) {
       throw new Error('Leaderboard entry not found');
     }
@@ -59,7 +59,7 @@ export class LeaderboardService {
   async handleScoreUpdated(payload: { sessionId: string; newScore: number; playerId: string; category?: string }) {
     const { playerId, newScore, category } = payload;
     // upsert the leaderboard entry
-    const existing = await this.repo.findOne({ where: { playerId, category: category ?? null } });
+    const existing = await this.repo.findOne({ where: { playerId, category: category ?? IsNull() } });
     if (existing) {
       existing.totalScore += newScore;
       await this.repo.save(existing);

@@ -11,7 +11,7 @@ export class LeaderboardEntry {
   playerId: string; // reference to User.id
 
   @Column({ nullable: true })
-  category: string; // e.g., 'logic', null for global
+  category: string | null; // e.g., 'logic', null for global
 
   @Column({ type: 'int', default: 0 })
   totalScore: number;
