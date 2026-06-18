@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Between, FindOptionsWhere, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { Session } from '../sessions/entities/session.entity';
+import { SessionStatus } from '../sessions/entities/session.entity';
 import { Reward } from '../rewards/entities/reward.entity';
 import { AuditService } from '../audit/audit.service';
 import { PaginationDto } from './dto/pagination.dto';
@@ -47,21 +48,21 @@ export class AdminService {
     const where: FindOptionsWhere<Session> = {};
 
     if (status) {
-      where.status = status;
+      where.status = status as SessionStatus;
     }
     if (startDate && endDate) {
-      where.createdAt = Between(new Date(startDate), new Date(endDate));
+      where.startedAt = Between(new Date(startDate), new Date(endDate));
     } else if (startDate) {
-      where.createdAt = MoreThanOrEqual(new Date(startDate));
+      where.startedAt = MoreThanOrEqual(new Date(startDate));
     } else if (endDate) {
-      where.createdAt = LessThanOrEqual(new Date(endDate));
+      where.startedAt = LessThanOrEqual(new Date(endDate));
     }
 
     const [data, total] = await this.sessionRepository.findAndCount({
       where,
       skip: (page - 1) * limit,
       take: limit,
-      order: { createdAt: 'DESC' },
+      order: { startedAt: 'DESC' },
     });
     return { data, total, page, limit };
   }
