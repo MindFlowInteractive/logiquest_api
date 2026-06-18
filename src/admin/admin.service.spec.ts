@@ -144,11 +144,11 @@ describe('AdminService', () => {
       expect(mockSessionRepository.findAndCount).toHaveBeenCalledWith({
         where: {
           status: 'completed',
-          createdAt: Between(new Date(dto.startDate!), new Date(dto.endDate!)),
+          startedAt: Between(new Date(dto.startDate!), new Date(dto.endDate!)),
         },
         skip: 10,
         take: 10,
-        order: { createdAt: 'DESC' },
+        order: { startedAt: 'DESC' },
       });
     });
   });

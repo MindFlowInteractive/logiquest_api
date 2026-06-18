@@ -10,6 +10,8 @@ import { EventBusService } from '../common/events/event-bus.service';
 
 import { EventName } from '../events/events.enum';
 import { ScoreUpdatedPayload } from '../events/event-payloads';
+import { Repository, IsNull } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 import { LeaderboardEntry } from '../leaderboard/entities/leaderboard-entry.entity';
 import { LeaderboardService } from '../leaderboard/leaderboard.service';
 
@@ -30,11 +32,7 @@ export class ScoringListener {
       console.warn('ScoreUpdated payload missing playerId');
       return;
     }
-
-    let entry = await this.leaderboardRepo.findOne({
-      where: { playerId, category: null },
-    });
-
+    let entry = await this.leaderboardRepo.findOne({ where: { playerId, category: IsNull() } });
     if (entry) {
       entry.totalScore = newScore;
       await this.leaderboardRepo.save(entry);
@@ -49,20 +47,11 @@ export class ScoringListener {
   }
 }
 
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { LeaderboardModule } from '../leaderboard/leaderboard.module';
+
 @Module({
-  imports: TypeOrmModule.forFeature([
-    Score,
-    LeaderboardEntry,
-  ]),
-  providers: [
-    ScoringService,
-    EventBusService,
-    ScoringListener,
-    LeaderboardService,
-  ],
-  controllers: [ScoringController],
-  exports: [ScoringService],
-})
-export class ScoringModule {}
+  imports: [TypeOrmModule.forFeature([LeaderboardEntry]), LeaderboardModule],
+  providers: [ScoringListener],
 })
 export class ScoringModule {}
