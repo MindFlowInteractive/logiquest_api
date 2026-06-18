@@ -12,6 +12,7 @@ import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
 import { AuditModule } from './audit/audit.module';
 import { SecurityModule } from './security/security.module';
+import { NftModule } from './nft/nft.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { SecurityModule } from './security/security.module';
     AdminModule,
     AuditModule,
     SecurityModule,
+    NftModule,
   ],
   providers: [EventService],
 })
