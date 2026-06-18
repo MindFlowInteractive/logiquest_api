@@ -1,30 +1,30 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-
-export enum UserRole {
-  ADMIN = 'admin',
-  PLAYER = 'player',
-}
+import { Role } from '../../common/enums/role.enum';
 
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ unique: true })
-  username: string;
+  username!: string;
 
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
   @Column()
-  passwordHash: string;
+  passwordHash!: string;
 
-  @Column({ type: 'enum', enum: UserRole, default: UserRole.PLAYER })
-  role: UserRole;
+  @Column({ type: 'enum', enum: Role, default: Role.USER })
+  role!: Role;
+
+  @Column({ default: false })
+  isBanned!: boolean;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
+}
 }
