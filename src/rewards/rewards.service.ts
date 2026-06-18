@@ -21,7 +21,9 @@ export class RewardsService {
     if (existing) return existing;
 
     const base = 10; // base reward unit
-    const amount = Math.round(base * (instance.puzzle.difficulty ?? 1));
+    const difficulty = instance.puzzle.difficulty ?? 1;
+    const score = typeof instance.getScore === 'function' ? instance.getScore() : 1;
+    const amount = Math.round(base * difficulty * score);
     const reward = this.rewardRepo.create({
       userId: instance.userId,
       sessionId: instance.id,
