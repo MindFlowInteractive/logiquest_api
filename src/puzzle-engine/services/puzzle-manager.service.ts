@@ -3,15 +3,16 @@ import { Puzzle } from '../interfaces/puzzle.interface';
 import { PuzzleInstance } from '../models/puzzle-instance.model';
 import { PuzzleFactory } from '../factories/puzzle.factory';
 import { PuzzleSerializationService } from './puzzle-serialization.service';
+import { RewardsService } from '../../rewards/rewards.service';
 
 @Injectable()
 export class PuzzleManagerService {
-  private instances: Map<string, PuzzleInstance> = new Map();
-  
   constructor(
     private puzzleFactory: PuzzleFactory,
     private serializationService: PuzzleSerializationService,
+    private rewardsService: RewardsService,
   ) {}
+  private instances: Map<string, PuzzleInstance> = new Map();
   
   createPuzzle(type: string, data: any, metadata?: any): Puzzle {
     return this.puzzleFactory.createPuzzle(type, data, metadata);
@@ -27,14 +28,19 @@ export class PuzzleManagerService {
     return this.instances.get(instanceId);
   }
   
-  makeMove(instanceId: string, move: any): boolean {
+  async makeMove(instanceId: string, move: any): Promise<boolean> {
     const instance = this.instances.get(instanceId);
     
     if (!instance) {
       throw new Error(`Instance not found: ${instanceId}`);
     }
     
-    return instance.makeMove(move);
+    const success = instance.makeMove(move);
+    if (success && instance.isCompleted) {
+      // Grant reward asynchronously, ignore result for now
+      this.rewardsService.grantReward(instance).catch(() => {});
+    }
+    return success;
   }
   
   checkSolution(puzzle: Puzzle, solution: any): boolean {

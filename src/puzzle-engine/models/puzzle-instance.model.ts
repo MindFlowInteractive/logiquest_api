@@ -65,9 +65,14 @@ export class PuzzleInstance {
     return false;
   }
   
-  getTimeElapsed(): number {
-    const endTime = this.completedAt || new Date();
-    return endTime.getTime() - this.startedAt.getTime();
+  /**
+   * Calculate a simple score for the instance.
+   * Currently defined as the number of moves made.
+   * Could be extended with more complex logic.
+   */
+  getScore(): number {
+    // Simple scoring: number of moves made
+    return this.moves.length;
   }
   
   reset(): void {
