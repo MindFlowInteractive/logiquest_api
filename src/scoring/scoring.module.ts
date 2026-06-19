@@ -1,13 +1,14 @@
 import { Module, Injectable } from '@nestjs/common';
 import { TypeOrmModule, InjectRepository } from '@nestjs/typeorm';
 import { OnEvent } from '@nestjs/event-emitter';
+
 import { Repository } from 'typeorm';
 
 import { ScoringService } from './scoring.service';
 import { ScoringController } from './scoring.controller';
 import { Score } from './entities/score.entity';
-import { EventBusService } from '../common/events/event-bus.service';
 
+import { EventBusService } from '../common/events/event-bus.service';
 import { EventName } from '../events/events.enum';
 import { ScoreUpdatedPayload } from '../events/event-payloads';
 import { Repository, IsNull } from 'typeorm';

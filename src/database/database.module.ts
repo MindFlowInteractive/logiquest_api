@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { AppConfigModule } from '../config/app-config.module';
-import { Puzzle } from './entities/puzzle.entity';
+import { Puzzle } from '../puzzles/entities/puzzle.entity';
 
 @Module({
   imports: [
