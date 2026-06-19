@@ -14,7 +14,7 @@ export class User {
 
   // Keep both temporarily if both branches are already using them
   @Column()
-  password!: string;
+  passwordHash!: string;
 
   @Column()
   passwordHash!: string;
