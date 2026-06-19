@@ -3,11 +3,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AppConfigModule } from './config/app-config.module';
 import { DatabaseModule } from './database/database.module';
 import { EventService } from './events/event.service';
-import { ScoringModule } from './scoring/scoring.module';
-import { AchievementsModule } from './achievements/achievements.module';
-import { RewardsModule } from './rewards/rewards.module';
-import { NotificationsModule } from './notifications/notifications.module';
-import { AnalyticsModule } from './analytics/analytics.module';
+
 import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
 import { AuditModule } from './audit/audit.module';
@@ -23,7 +19,6 @@ import { PuzzlesModule } from './puzzles/puzzles.module';
     DatabaseModule,
     AuthModule,
     AnalyticsModule,
-    EventEmitterModule.forRoot({ global: true }),
     ScoringModule,
     AchievementsModule,
     RewardsModule,

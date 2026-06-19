@@ -1,5 +1,14 @@
 import { Module, Injectable } from '@nestjs/common';
+import { TypeOrmModule, InjectRepository } from '@nestjs/typeorm';
 import { OnEvent } from '@nestjs/event-emitter';
+
+import { Repository } from 'typeorm';
+
+import { ScoringService } from './scoring.service';
+import { ScoringController } from './scoring.controller';
+import { Score } from './entities/score.entity';
+
+import { EventBusService } from '../common/events/event-bus.service';
 import { EventName } from '../events/events.enum';
 import { ScoreUpdatedPayload } from '../events/event-payloads';
 import { Repository, IsNull } from 'typeorm';
@@ -17,10 +26,9 @@ export class ScoringListener {
 
   @OnEvent(EventName.ScoreUpdated)
   async handleScoreUpdated(payload: ScoreUpdatedPayload) {
-    // Upsert global leaderboard entry (category null)
     const { newScore } = payload;
-    // Assuming payload contains playerId (userId) - adjust if different
     const playerId = (payload as any).playerId || (payload as any).userId;
+
     if (!playerId) {
       console.warn('ScoreUpdated payload missing playerId');
       return;
@@ -30,10 +38,13 @@ export class ScoringListener {
       entry.totalScore = newScore;
       await this.leaderboardRepo.save(entry);
     } else {
-      entry = this.leaderboardRepo.create({ playerId, totalScore: newScore, category: null });
+      entry = this.leaderboardRepo.create({
+        playerId,
+        totalScore: newScore,
+        category: null,
+      });
       await this.leaderboardRepo.save(entry);
     }
-    // Optionally trigger any cache invalidation here
   }
 }
 

@@ -1,16 +1,23 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Role } from '../../common/enums/role.enum';
 
-@Entity()
+@Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Column({ unique: true })
+  username!: string;
+
+  @Column({ unique: true })
   email!: string;
 
+  // Keep both temporarily if both branches are already using them
   @Column()
   password!: string;
+
+  @Column()
+  passwordHash!: string;
 
   @Column({ type: 'enum', enum: Role, default: Role.USER })
   role!: Role;
@@ -23,4 +30,5 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt!: Date;
+}
 }
