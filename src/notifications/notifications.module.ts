@@ -1,13 +1,17 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { NotificationsController } from './notifications.controller';
-import { NotificationsService } from './notifications.service';
-import { Notification } from './notification.entity';
+import { Module, Injectable } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
+import { EventName } from '../events/events.enum';
+import { SessionCompletedPayload } from '../events/event-payloads';
+
+@Injectable()
+export class NotificationsListener {
+  @OnEvent(EventName.SessionCompleted)
+  async handleSessionCompleted(payload: SessionCompletedPayload) {
+    console.log('NotificationsListener received SessionCompleted:', payload);
+  }
+}
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Notification])],
-  controllers: [NotificationsController],
-  providers: [NotificationsService],
-  exports: [NotificationsService],
+  providers: [NotificationsListener],
 })
 export class NotificationsModule {}

@@ -1,20 +1,40 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ScheduleModule } from '@nestjs/schedule';
-import { NotificationsModule } from './notifications/notifications.module';
-import { NotificationsSchedulerModule } from './notifications/notifications.scheduler.module';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { AppConfigModule } from './config/app-config.module';
+import { DatabaseModule } from './database/database.module';
+import { EventService } from './events/event.service';
+
+import { AuthModule } from './auth/auth.module';
+import { AdminModule } from './admin/admin.module';
+import { AuditModule } from './audit/audit.module';
+import { SecurityModule } from './security/security.module';
+import { HealthModule } from './health/health.module';
+import { LoggingMiddleware } from './common/middleware/logging.middleware';
+import { CategoriesModule } from './categories/categories.module';
+import { PuzzlesModule } from './puzzles/puzzles.module';
 
 @Module({
   imports: [
-    ScheduleModule.forRoot(),
-    TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: 'data/db.sqlite',
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
-    }),
+    AppConfigModule,
+    DatabaseModule,
+    AuthModule,
+    AnalyticsModule,
+    ScoringModule,
+    AchievementsModule,
+    RewardsModule,
     NotificationsModule,
-    NotificationsSchedulerModule,
+    AdminModule,
+    AuditModule,
+    SecurityModule,
+    HealthModule,
+    CategoriesModule,
+    PuzzlesModule,
   ],
+  providers: [EventService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    // Log every inbound request across all routes.
+    consumer.apply(LoggingMiddleware).forRoutes('*');
+  }
+}
