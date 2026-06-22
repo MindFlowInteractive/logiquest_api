@@ -8,6 +8,8 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:prod": "node .",
+    "test": "jest",
+    "test:cov": "jest --coverage"
     "migration:generate": "npm run build && npx typeorm migration:generate -d dist/src/database/data-source.js",
     "migration:run": "npm run build && npx typeorm migration:run -d dist/src/database/data-source.js",
     "migration:revert": "npm run build && npx typeorm migration:revert -d dist/src/database/data-source.js",
@@ -64,5 +66,22 @@
     "supertest": "^7.2.2",
     "ts-jest": "^29.4.11",
     "typescript": "^5.9.3"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node"
   }
 }
