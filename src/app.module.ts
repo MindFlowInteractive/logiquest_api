@@ -12,23 +12,24 @@ import { HealthModule } from './health/health.module';
 import { LoggingMiddleware } from './common/middleware/logging.middleware';
 import { CategoriesModule } from './categories/categories.module';
 import { PuzzlesModule } from './puzzles/puzzles.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { CalibrationModule } from './calibration/calibration.module';
+import { SessionsModule } from './sessions/sessions.module';
 
 @Module({
   imports: [
     AppConfigModule,
     DatabaseModule,
     AuthModule,
-    AnalyticsModule,
-    ScoringModule,
-    AchievementsModule,
-    RewardsModule,
     NotificationsModule,
+    SessionsModule,
     AdminModule,
     AuditModule,
     SecurityModule,
     HealthModule,
     CategoriesModule,
     PuzzlesModule,
+    CalibrationModule,
   ],
   providers: [EventService],
 })
