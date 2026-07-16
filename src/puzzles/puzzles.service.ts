@@ -2,10 +2,23 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Puzzle } from './entities/puzzle.entity';
+import { PuzzleTranslation } from './entities/puzzle-translation.entity';
 import { Category } from '../categories/entities/category.entity';
 import { CreatePuzzleDto } from './dto/create-puzzle.dto';
 import { UpdatePuzzleDto } from './dto/update-puzzle.dto';
 import { GetPuzzlesFilterDto } from './dto/get-puzzles-filter.dto';
+import { UpsertPuzzleTranslationDto } from './dto/upsert-puzzle-translation.dto';
+import { PuzzleTranslationResponseDto } from './dto/puzzle-translation-response.dto';
+import { validateLocale } from '../config/locale.helper';
+import { DEFAULT_LOCALE } from '../config/locale.config';
+
+/** Shape returned by GET /puzzles/:id — localised title/description/hints merged on top. */
+export interface LocalisedPuzzle extends Omit<Puzzle, 'title' | 'description'> {
+  title: string;
+  description: string;
+  hints: Array<{ order: number; content: string }> | null;
+  locale: string;
+}
 
 @Injectable()
 export class PuzzlesService {
@@ -14,6 +27,8 @@ export class PuzzlesService {
     private readonly puzzleRepository: Repository<Puzzle>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
+    @InjectRepository(PuzzleTranslation)
+    private readonly translationRepository: Repository<PuzzleTranslation>,
   ) {}
 
   async create(dto: CreatePuzzleDto, authorId: string): Promise<Puzzle> {
@@ -88,6 +103,45 @@ export class PuzzlesService {
     return puzzle;
   }
 
+  /**
+   * Returns a puzzle with its content localised to `locale`.
+   * Falls back to the base Puzzle row (English) if no translation row exists.
+   */
+  async findOneLocalised(id: string, locale: string): Promise<LocalisedPuzzle> {
+    const puzzle = await this.findOne(id);
+
+    // Base puzzle IS the English content — no translation lookup needed for 'en'.
+    if (locale === DEFAULT_LOCALE) {
+      return this.mergeBaseAsLocalised(puzzle, DEFAULT_LOCALE);
+    }
+
+    const translation = await this.translationRepository.findOne({
+      where: { puzzleId: id, locale },
+    });
+
+    if (!translation) {
+      // Graceful fallback to English base content.
+      return this.mergeBaseAsLocalised(puzzle, DEFAULT_LOCALE);
+    }
+
+    return {
+      ...puzzle,
+      title: translation.title,
+      description: translation.description,
+      hints: translation.hints,
+      locale,
+    };
+  }
+
+  private mergeBaseAsLocalised(puzzle: Puzzle, locale: string): LocalisedPuzzle {
+    return {
+      ...puzzle,
+      // Base Puzzle has no hints column — callers expecting hints will get null.
+      hints: null,
+      locale,
+    };
+  }
+
   async update(id: string, dto: UpdatePuzzleDto): Promise<Puzzle> {
     const puzzle = await this.puzzleRepository.findOne({
       where: { id },
@@ -125,5 +179,78 @@ export class PuzzlesService {
       throw new NotFoundException(`Puzzle with ID "${id}" not found`);
     }
     await this.puzzleRepository.remove(puzzle);
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Translation management (admin)
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Upserts a translation for the given puzzle.
+   * Validates the locale against SUPPORTED_LOCALES (throws 400 if invalid).
+   * Creates if the (puzzleId, locale) pair doesn't exist; updates otherwise.
+   */
+  async upsertTranslation(
+    puzzleId: string,
+    dto: UpsertPuzzleTranslationDto,
+  ): Promise<PuzzleTranslationResponseDto> {
+    // Ensure the puzzle exists first — 404 if not.
+    await this.findOne(puzzleId);
+
+    // Throws BadRequestException for unsupported locales.
+    validateLocale(dto.locale);
+
+    const existing = await this.translationRepository.findOne({
+      where: { puzzleId, locale: dto.locale },
+    });
+
+    let translation: PuzzleTranslation;
+
+    if (existing) {
+      existing.title = dto.title;
+      existing.description = dto.description;
+      existing.hints = dto.hints ?? null;
+      translation = await this.translationRepository.save(existing);
+    } else {
+      const created = this.translationRepository.create({
+        puzzleId,
+        locale: dto.locale,
+        title: dto.title,
+        description: dto.description,
+        hints: dto.hints ?? null,
+      });
+      translation = await this.translationRepository.save(created);
+    }
+
+    return this.toResponseDto(translation);
+  }
+
+  /**
+   * Returns all translation rows for a puzzle (admin view).
+   * Returns an empty array if no translations exist yet.
+   */
+  async findAllTranslations(puzzleId: string): Promise<PuzzleTranslationResponseDto[]> {
+    // Ensure puzzle exists.
+    await this.findOne(puzzleId);
+
+    const translations = await this.translationRepository.find({
+      where: { puzzleId },
+      order: { locale: 'ASC' },
+    });
+
+    return translations.map((t) => this.toResponseDto(t));
+  }
+
+  private toResponseDto(t: PuzzleTranslation): PuzzleTranslationResponseDto {
+    const dto = new PuzzleTranslationResponseDto();
+    dto.id = t.id;
+    dto.puzzleId = t.puzzleId;
+    dto.locale = t.locale;
+    dto.title = t.title;
+    dto.description = t.description;
+    dto.hints = t.hints;
+    dto.createdAt = t.createdAt;
+    dto.updatedAt = t.updatedAt;
+    return dto;
   }
 }

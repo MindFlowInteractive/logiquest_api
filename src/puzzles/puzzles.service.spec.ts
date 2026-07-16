@@ -3,6 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { PuzzlesService } from './puzzles.service';
 import { Puzzle } from './entities/puzzle.entity';
+import { PuzzleTranslation } from './entities/puzzle-translation.entity';
 import { Category } from '../categories/entities/category.entity';
 
 describe('PuzzlesService', () => {
@@ -40,6 +41,15 @@ describe('PuzzlesService', () => {
         {
           provide: getRepositoryToken(Category),
           useValue: mockCategoryRepository,
+        },
+        {
+          provide: getRepositoryToken(PuzzleTranslation),
+          useValue: {
+            create: jest.fn(),
+            save: jest.fn(),
+            findOne: jest.fn(),
+            find: jest.fn(),
+          },
         },
       ],
     }).compile();
