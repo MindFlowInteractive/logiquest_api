@@ -3,6 +3,7 @@ import { PuzzlesService } from './puzzles.service';
 import { CreatePuzzleDto } from './dto/create-puzzle.dto';
 import { UpdatePuzzleDto } from './dto/update-puzzle.dto';
 import { GetPuzzlesFilterDto } from './dto/get-puzzles-filter.dto';
+import { SetPuzzleTagsDto } from './dto/set-puzzle-tags.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -42,5 +43,11 @@ export class PuzzlesController {
   @Roles(Role.ADMIN)
   remove(@Param('id') id: string) {
     return this.puzzlesService.remove(id);
+  }
+
+  @Patch(':id/tags')
+  @UseGuards(JwtAuthGuard)
+  setTags(@Param('id') id: string, @Body() setPuzzleTagsDto: SetPuzzleTagsDto, @Request() req) {
+    return this.puzzlesService.setTags(id, setPuzzleTagsDto.tagIds, req.user.id, req.user.role);
   }
 }

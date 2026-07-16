@@ -9,7 +9,7 @@
     "start:dev": "nest start --watch",
     "start:prod": "node .",
     "test": "jest",
-    "test:cov": "jest --coverage"
+    "test:cov": "jest --coverage",
     "migration:generate": "npm run build && npx typeorm migration:generate -d dist/src/database/data-source.js",
     "migration:run": "npm run build && npx typeorm migration:run -d dist/src/database/data-source.js",
     "migration:revert": "npm run build && npx typeorm migration:revert -d dist/src/database/data-source.js",

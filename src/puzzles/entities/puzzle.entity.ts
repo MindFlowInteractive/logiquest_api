@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
 import { Category } from '../../categories/entities/category.entity';
+import { Tag } from '../../tags/entities/tag.entity';
 
 @Entity('puzzles')
 export class Puzzle {
@@ -26,6 +27,14 @@ export class Puzzle {
 
   @Column()
   authorId!: string;
+
+  @ManyToMany(() => Tag, (tag) => tag.puzzles)
+  @JoinTable({
+    name: 'puzzle_tags',
+    joinColumn: { name: 'puzzleId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'tagId', referencedColumnName: 'id' },
+  })
+  tags!: Tag[];
 
   @CreateDateColumn()
   createdAt!: Date;
