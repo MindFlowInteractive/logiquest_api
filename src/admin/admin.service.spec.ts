@@ -5,6 +5,8 @@ import { User } from '../users/entities/user.entity';
 import { Session } from '../sessions/entities/session.entity';
 import { Reward } from '../rewards/entities/reward.entity';
 import { AuditService } from '../audit/audit.service';
+import { Puzzle } from '../puzzles/entities/puzzle.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PaginationDto } from './dto/pagination.dto';
 import { SessionFilterDto } from './dto/session-filter.dto';
 import { NotFoundException } from '@nestjs/common';
@@ -17,7 +19,19 @@ describe('AdminService', () => {
     findAndCount: jest.fn(),
     findOne: jest.fn(),
     save: jest.fn(),
+    findOne: jest.fn(),
+    save: jest.fn(),
     count: jest.fn(),
+  };
+
+  const mockPuzzleRepository = {
+    find: jest.fn(),
+    findOne: jest.fn(),
+    save: jest.fn(),
+  };
+
+  const mockEventEmitter = {
+    emit: jest.fn(),
   };
 
   const mockSessionRepository = {
@@ -56,8 +70,16 @@ describe('AdminService', () => {
           useValue: mockRewardRepository,
         },
         {
+          provide: getRepositoryToken(Puzzle),
+          useValue: mockPuzzleRepository,
+        },
+        {
           provide: AuditService,
           useValue: mockAuditService,
+        },
+        {
+          provide: EventEmitter2,
+          useValue: mockEventEmitter,
         },
       ],
     }).compile();
@@ -181,6 +203,44 @@ describe('AdminService', () => {
       const result = await service.getStats();
 
       expect(result.totalRewardsDistributed).toBe(0);
+    });
+  });
+
+  describe('submissions', () => {
+    it('should return pending submissions', async () => {
+      mockPuzzleRepository.find.mockResolvedValue([{ id: 'puz-1', submissionStatus: 'pending' }]);
+      const result = await service.getPendingSubmissions();
+      expect(result).toEqual([{ id: 'puz-1', submissionStatus: 'pending' }]);
+      expect(mockPuzzleRepository.find).toHaveBeenCalledWith({
+        where: { submissionStatus: 'pending' },
+        relations: { category: true },
+        order: { createdAt: 'ASC' },
+      });
+    });
+
+    it('should approve a submission and emit events', async () => {
+      const puzzle = { id: 'puz-1', authorId: 'author-1', submissionStatus: 'pending' };
+      mockPuzzleRepository.findOne.mockResolvedValue(puzzle);
+
+      await service.approveSubmission('admin-1', 'puz-1');
+
+      expect(puzzle.submissionStatus).toBe('approved');
+      expect(mockPuzzleRepository.save).toHaveBeenCalledWith(puzzle);
+      expect(mockEventEmitter.emit).toHaveBeenCalledWith('reward.granted', expect.any(Object));
+      expect(mockEventEmitter.emit).toHaveBeenCalledWith('achievement.unlocked', expect.any(Object));
+      expect(mockAuditService.log).toHaveBeenCalledWith('APPROVE_PUZZLE_SUBMISSION', 'admin-1', 'puz-1');
+    });
+
+    it('should reject a submission', async () => {
+      const puzzle = { id: 'puz-1', authorId: 'author-1', submissionStatus: 'pending', rejectionReason: null };
+      mockPuzzleRepository.findOne.mockResolvedValue(puzzle);
+
+      await service.rejectSubmission('admin-1', 'puz-1', 'Too easy');
+
+      expect(puzzle.submissionStatus).toBe('rejected');
+      expect(puzzle.rejectionReason).toBe('Too easy');
+      expect(mockPuzzleRepository.save).toHaveBeenCalledWith(puzzle);
+      expect(mockAuditService.log).toHaveBeenCalledWith('REJECT_PUZZLE_SUBMISSION', 'admin-1', 'puz-1');
     });
   });
 });
