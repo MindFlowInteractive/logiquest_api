@@ -12,9 +12,16 @@ import { HealthModule } from './health/health.module';
 import { LoggingMiddleware } from './common/middleware/logging.middleware';
 import { CategoriesModule } from './categories/categories.module';
 import { PuzzlesModule } from './puzzles/puzzles.module';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { ScoringModule } from './scoring/scoring.module';
+import { AchievementsModule } from './achievements/achievements.module';
+import { RewardsModule } from './rewards/rewards.module';
 import { NotificationsModule } from './notifications/notifications.module';
-import { CalibrationModule } from './calibration/calibration.module';
+import { HintsModule } from './hints/hints.module';
 import { SessionsModule } from './sessions/sessions.module';
+import { LeaderboardModule } from './leaderboard/leaderboard.module';
+import { NftModule } from './nft/nft.module';
+import { CalibrationModule } from './calibration/calibration.module';
 
 @Module({
   imports: [
@@ -29,6 +36,11 @@ import { SessionsModule } from './sessions/sessions.module';
     HealthModule,
     CategoriesModule,
     PuzzlesModule,
+    HintsModule,
+    SessionsModule,
+    LeaderboardModule,
+    NftModule,
+    EventEmitterModule.forRoot(),
     CalibrationModule,
   ],
   providers: [EventService],
