@@ -21,17 +21,15 @@ import { HintsModule } from './hints/hints.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { NftModule } from './nft/nft.module';
+import { CalibrationModule } from './calibration/calibration.module';
 
 @Module({
   imports: [
     AppConfigModule,
     DatabaseModule,
     AuthModule,
-    AnalyticsModule,
-    ScoringModule,
-    AchievementsModule,
-    RewardsModule,
     NotificationsModule,
+    SessionsModule,
     AdminModule,
     AuditModule,
     SecurityModule,
@@ -43,6 +41,7 @@ import { NftModule } from './nft/nft.module';
     LeaderboardModule,
     NftModule,
     EventEmitterModule.forRoot(),
+    CalibrationModule,
   ],
   providers: [EventService],
 })

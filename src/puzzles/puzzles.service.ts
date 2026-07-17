@@ -39,6 +39,38 @@ export class PuzzlesService {
     return this.puzzleRepository.save(puzzle);
   }
 
+  async submitDraft(dto: CreatePuzzleDto, authorId: string): Promise<Puzzle> {
+    let category: Category | null = null;
+    if (dto.categoryId) {
+      category = await this.categoryRepository.findOne({ where: { id: dto.categoryId } });
+      if (!category) {
+        throw new NotFoundException(`Category with ID "${dto.categoryId}" not found`);
+      }
+    }
+
+    const puzzle = this.puzzleRepository.create({
+      title: dto.title,
+      description: dto.description,
+      difficulty: dto.difficulty,
+      conditions: dto.conditions,
+      effects: dto.effects,
+      category,
+      authorId,
+      submissionStatus: 'pending' as any,
+    });
+
+    return this.puzzleRepository.save(puzzle);
+  }
+
+  async findMySubmissions(authorId: string): Promise<Puzzle[]> {
+    return this.puzzleRepository.find({
+      where: { authorId },
+      order: { createdAt: 'DESC' },
+      relations: { category: true },
+    });
+  }
+
+
   async findAll(filter: GetPuzzlesFilterDto) {
     const page = filter.page ?? 1;
     const limit = filter.limit ?? 20;
