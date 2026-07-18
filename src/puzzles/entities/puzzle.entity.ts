@@ -2,6 +2,14 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, Ma
 import { Category } from '../../categories/entities/category.entity';
 import { Tag } from '../../tags/entities/tag.entity';
 
+export enum SubmissionStatus {
+  PENDING = 'pending',
+  UNDER_REVIEW = 'under_review',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+}
+
+
 @Entity('puzzles')
 export class Puzzle {
   @PrimaryGeneratedColumn('uuid')
@@ -27,6 +35,12 @@ export class Puzzle {
 
   @Column()
   authorId!: string;
+
+  @Column({ type: 'enum', enum: SubmissionStatus, default: SubmissionStatus.APPROVED })
+  submissionStatus!: SubmissionStatus;
+
+  @Column({ nullable: true })
+  rejectionReason!: string;
 
   @ManyToMany(() => Tag, (tag) => tag.puzzles)
   @JoinTable({

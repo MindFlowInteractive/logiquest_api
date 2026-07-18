@@ -5,7 +5,9 @@ import { User } from '../users/entities/user.entity';
 import { Session } from '../sessions/entities/session.entity';
 import { SessionStatus } from '../sessions/entities/session.entity';
 import { Reward } from '../rewards/entities/reward.entity';
+import { Puzzle } from '../puzzles/entities/puzzle.entity';
 import { AuditService } from '../audit/audit.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PaginationDto } from './dto/pagination.dto';
 import { SessionFilterDto } from './dto/session-filter.dto';
 
@@ -18,7 +20,10 @@ export class AdminService {
     private readonly sessionRepository: Repository<Session>,
     @InjectRepository(Reward)
     private readonly rewardRepository: Repository<Reward>,
+    @InjectRepository(Puzzle)
+    private readonly puzzleRepository: Repository<Puzzle>,
     private readonly auditService: AuditService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async getUsers(dto: PaginationDto) {
@@ -76,5 +81,51 @@ export class AdminService {
       .getRawOne();
     const totalRewardsDistributed = Number(raw?.sum ?? 0);
     return { totalUsers, totalSessions, totalRewardsDistributed };
+  }
+
+  async getPendingSubmissions() {
+    return this.puzzleRepository.find({
+      where: { submissionStatus: 'pending' as any },
+      relations: { category: true },
+      order: { createdAt: 'ASC' },
+    });
+  }
+
+  async approveSubmission(adminId: string, puzzleId: string) {
+    const puzzle = await this.puzzleRepository.findOne({ where: { id: puzzleId } });
+    if (!puzzle) {
+      throw new NotFoundException(`Puzzle with id ${puzzleId} not found`);
+    }
+
+    puzzle.submissionStatus = 'approved' as any;
+    await this.puzzleRepository.save(puzzle);
+
+    // Give rewards and achievements
+    this.eventEmitter.emit('reward.granted', {
+      userId: puzzle.authorId,
+      amount: 500,
+      reason: 'Puzzle Submission Approved',
+    });
+    this.eventEmitter.emit('achievement.unlocked', {
+      userId: puzzle.authorId,
+      achievementId: 'contributor',
+    });
+
+    await this.auditService.log('APPROVE_PUZZLE_SUBMISSION', adminId, puzzleId);
+    return puzzle;
+  }
+
+  async rejectSubmission(adminId: string, puzzleId: string, reason: string) {
+    const puzzle = await this.puzzleRepository.findOne({ where: { id: puzzleId } });
+    if (!puzzle) {
+      throw new NotFoundException(`Puzzle with id ${puzzleId} not found`);
+    }
+
+    puzzle.submissionStatus = 'rejected' as any;
+    puzzle.rejectionReason = reason;
+    await this.puzzleRepository.save(puzzle);
+
+    await this.auditService.log('REJECT_PUZZLE_SUBMISSION', adminId, puzzleId);
+    return puzzle;
   }
 }

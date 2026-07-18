@@ -14,6 +14,7 @@ describe('PuzzlesService', () => {
     create: jest.fn().mockImplementation((dto) => dto),
     save: jest.fn().mockImplementation((puz) => Promise.resolve({ id: 'puz-uuid', ...puz, createdAt: new Date() })),
     findOne: jest.fn(),
+    find: jest.fn(),
     remove: jest.fn(),
     createQueryBuilder: jest.fn(),
   };
@@ -105,6 +106,47 @@ describe('PuzzlesService', () => {
 
       await expect(service.create(dto, 'admin-1')).rejects.toThrow(NotFoundException);
       expect(mockPuzzleRepository.save).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('submitDraft', () => {
+    it('should create a puzzle with submissionStatus pending', async () => {
+      const category = { id: 'cat-1', name: 'Logic' };
+      mockCategoryRepository.findOne.mockResolvedValue(category);
+
+      const dto = {
+        title: 'Draft Puzzle',
+        description: 'Test description',
+        difficulty: 'hard',
+        categoryId: 'cat-1',
+        conditions: {},
+        effects: {},
+      };
+
+      const result = await service.submitDraft(dto, 'player-1');
+
+      expect(result.id).toBe('puz-uuid');
+      expect(mockPuzzleRepository.create).toHaveBeenCalledWith(expect.objectContaining({
+        title: 'Draft Puzzle',
+        authorId: 'player-1',
+        submissionStatus: 'pending',
+      }));
+      expect(mockPuzzleRepository.save).toHaveBeenCalled();
+    });
+  });
+
+  describe('findMySubmissions', () => {
+    it('should return puzzles by authorId', async () => {
+      mockPuzzleRepository.find.mockResolvedValue([{ id: 'puz-1' }]);
+
+      const result = await service.findMySubmissions('author-1');
+
+      expect(result).toEqual([{ id: 'puz-1' }]);
+      expect(mockPuzzleRepository.find).toHaveBeenCalledWith({
+        where: { authorId: 'author-1' },
+        order: { createdAt: 'DESC' },
+        relations: { category: true },
+      });
     });
   });
 

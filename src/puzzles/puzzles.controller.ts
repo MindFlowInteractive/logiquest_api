@@ -21,6 +21,20 @@ export class PuzzlesController {
     return this.puzzlesService.create(createPuzzleDto, authorId);
   }
 
+  @Post('submit')
+  @UseGuards(JwtAuthGuard)
+  submit(@Body() createPuzzleDto: CreatePuzzleDto, @Request() req) {
+    const authorId = req.user.id;
+    return this.puzzlesService.submitDraft(createPuzzleDto, authorId);
+  }
+
+  @Get('my-submissions')
+  @UseGuards(JwtAuthGuard)
+  findMySubmissions(@Request() req) {
+    const authorId = req.user.id;
+    return this.puzzlesService.findMySubmissions(authorId);
+  }
+
   @Get()
   findAll(@Query() query: GetPuzzlesFilterDto) {
     return this.puzzlesService.findAll(query);

@@ -17,6 +17,11 @@ import { LoggingMiddleware } from './common/middleware/logging.middleware';
 import { CategoriesModule } from './categories/categories.module';
 import { PuzzlesModule } from './puzzles/puzzles.module';
 import { TagsModule } from './tags/tags.module';
+import { HintsModule } from './hints/hints.module';
+import { SessionsModule } from './sessions/sessions.module';
+import { LeaderboardModule } from './leaderboard/leaderboard.module';
+import { NftModule } from './nft/nft.module';
+import { CalibrationModule } from './calibration/calibration.module';
 
 @Module({
   imports: [
@@ -29,6 +34,7 @@ import { TagsModule } from './tags/tags.module';
     AchievementsModule,
     RewardsModule,
     NotificationsModule,
+    SessionsModule,
     AdminModule,
     AuditModule,
     SecurityModule,
@@ -36,6 +42,10 @@ import { TagsModule } from './tags/tags.module';
     CategoriesModule,
     PuzzlesModule,
     TagsModule,
+    HintsModule,
+    LeaderboardModule,
+    NftModule,
+    CalibrationModule,
   ],
   providers: [EventService],
 })
