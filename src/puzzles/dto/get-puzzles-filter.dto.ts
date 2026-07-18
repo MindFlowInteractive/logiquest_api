@@ -22,4 +22,12 @@ export class GetPuzzlesFilterDto {
   @IsOptional()
   @IsString()
   category?: string;
+
+  @IsOptional()
+  @IsString()
+  tags?: string;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
 }
