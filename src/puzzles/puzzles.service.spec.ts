@@ -12,6 +12,7 @@ describe('PuzzlesService', () => {
     create: jest.fn().mockImplementation((dto) => dto),
     save: jest.fn().mockImplementation((puz) => Promise.resolve({ id: 'puz-uuid', ...puz, createdAt: new Date() })),
     findOne: jest.fn(),
+    find: jest.fn(),
     remove: jest.fn(),
     createQueryBuilder: jest.fn(),
   };
