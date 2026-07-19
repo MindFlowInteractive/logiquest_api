@@ -5,6 +5,7 @@ import { PuzzlesService } from './puzzles.service';
 import { Puzzle } from './entities/puzzle.entity';
 import { PuzzleTranslation } from './entities/puzzle-translation.entity';
 import { Category } from '../categories/entities/category.entity';
+import { Tag } from '../tags/entities/tag.entity';
 
 // ── Minimal mock fixtures ─────────────────────────────────────────────────────
 
@@ -64,6 +65,7 @@ describe('PuzzlesService — i18n / translations', () => {
         { provide: getRepositoryToken(Puzzle), useValue: mockPuzzleRepo },
         { provide: getRepositoryToken(Category), useValue: mockCategoryRepo },
         { provide: getRepositoryToken(PuzzleTranslation), useValue: mockTranslationRepo },
+        { provide: getRepositoryToken(Tag), useValue: {} },
       ],
     }).compile();
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Query, UseGuards, Request, Body, BadRequestException } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -32,5 +32,25 @@ export class AdminController {
   @Get('stats')
   getStats() {
     return this.adminService.getStats();
+  }
+
+  @Get('submissions')
+  getPendingSubmissions() {
+    return this.adminService.getPendingSubmissions();
+  }
+
+  @Patch('submissions/:id/approve')
+  approveSubmission(@Param('id') id: string, @Request() req) {
+    const adminId = req.user.id;
+    return this.adminService.approveSubmission(adminId, id);
+  }
+
+  @Patch('submissions/:id/reject')
+  rejectSubmission(@Param('id') id: string, @Body('reason') reason: string, @Request() req) {
+    if (!reason) {
+      throw new BadRequestException('Rejection reason is required');
+    }
+    const adminId = req.user.id;
+    return this.adminService.rejectSubmission(adminId, id, reason);
   }
 }

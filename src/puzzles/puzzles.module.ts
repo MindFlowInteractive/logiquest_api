@@ -5,9 +5,10 @@ import { PuzzlesController } from './puzzles.controller';
 import { Puzzle } from './entities/puzzle.entity';
 import { PuzzleTranslation } from './entities/puzzle-translation.entity';
 import { Category } from '../categories/entities/category.entity';
+import { Tag } from '../tags/entities/tag.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Puzzle, PuzzleTranslation, Category])],
+  imports: [TypeOrmModule.forFeature([Puzzle, PuzzleTranslation, Category, Tag])],
   controllers: [PuzzlesController],
   providers: [PuzzlesService],
   exports: [PuzzlesService, TypeOrmModule],
