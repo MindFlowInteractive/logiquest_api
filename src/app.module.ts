@@ -22,6 +22,7 @@ import { SessionsModule } from './sessions/sessions.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { NftModule } from './nft/nft.module';
 import { CalibrationModule } from './calibration/calibration.module';
+import { RecommendationsModule } from './recommendations/recommendations.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { CalibrationModule } from './calibration/calibration.module';
     LeaderboardModule,
     NftModule,
     CalibrationModule,
+    RecommendationsModule,
   ],
   providers: [EventService],
 })
