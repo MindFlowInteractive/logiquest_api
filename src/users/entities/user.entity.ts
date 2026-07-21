@@ -1,5 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { Role } from '../../common/enums/role.enum';
+
+export enum UserRole {
+  PLAYER = 'user',
+  ADMIN = 'admin',
+}
 
 @Entity('users')
 export class User {
@@ -15,8 +19,8 @@ export class User {
   @Column()
   passwordHash!: string;
 
-  @Column({ type: 'enum', enum: Role, default: Role.USER })
-  role!: Role;
+  @Column({ type: 'enum', enum: UserRole, default: UserRole.PLAYER })
+  role!: UserRole;
 
   @Column({ default: false })
   isBanned!: boolean;

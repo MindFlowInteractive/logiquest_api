@@ -36,4 +36,8 @@ export class Session {
 
   @Column({ type: 'int', default: 0 })
   hintsUsed!: number;
+
+  /** BCP-47 locale tag that was active when this session was started. */
+  @Column({ default: 'en' })
+  locale!: string;
 }

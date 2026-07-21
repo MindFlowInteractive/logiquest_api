@@ -7,11 +7,13 @@ import {
   Param,
   UseGuards,
   Request,
+  Headers,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { SessionsService } from './sessions.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { SubmitSolutionDto } from './dto/submit-solution.dto';
+import { resolveLocale } from '../config/locale.helper';
 
 @UseGuards(JwtAuthGuard)
 @Controller('sessions')
@@ -19,8 +21,14 @@ export class SessionsController {
   constructor(private readonly sessionsService: SessionsService) {}
 
   @Post()
-  start(@Request() req, @Body() dto: CreateSessionDto) {
-    return this.sessionsService.start(req.user.id, dto);
+  start(
+    @Request() req,
+    @Body() dto: CreateSessionDto,
+    @Headers('accept-language') acceptLanguage: string | undefined,
+  ) {
+    // Locale preference: explicit body field > Accept-Language header > 'en'.
+    const locale = dto.locale ?? resolveLocale(acceptLanguage);
+    return this.sessionsService.start(req.user.id, dto, locale);
   }
 
   @Patch(':id/submit')

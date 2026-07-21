@@ -19,6 +19,7 @@ export interface InMemorySession {
   puzzleId: string;
   status: string;
 }
+import { DEFAULT_LOCALE } from '../config/locale.config';
 
 @Injectable()
 export class SessionsService {
@@ -77,11 +78,12 @@ export class SessionsService {
   // DB-backed session operations
   // ---------------------------------------------------------------------------
 
-  async start(userId: string, dto: CreateSessionDto): Promise<Session> {
+  async start(userId: string, dto: CreateSessionDto, locale?: string): Promise<Session> {
     const session = this.sessionRepo.create({
       userId,
       puzzleId: dto.puzzleId,
       status: SessionStatus.ACTIVE,
+      locale: locale ?? dto.locale ?? DEFAULT_LOCALE,
     });
     return this.sessionRepo.save(session);
   }

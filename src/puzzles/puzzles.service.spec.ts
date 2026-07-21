@@ -3,6 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PuzzlesService } from './puzzles.service';
 import { Puzzle } from './entities/puzzle.entity';
+import { PuzzleTranslation } from './entities/puzzle-translation.entity';
 import { Category } from '../categories/entities/category.entity';
 import { Tag } from '../tags/entities/tag.entity';
 import { Role } from '../common/enums/role.enum';
@@ -51,9 +52,18 @@ describe('PuzzlesService', () => {
           useValue: mockCategoryRepository,
         },
         {
-          provide: getRepositoryToken(Tag),
-          useValue: mockTagRepository,
-        },
+  provide: getRepositoryToken(PuzzleTranslation),
+  useValue: {
+    create: jest.fn(),
+    save: jest.fn(),
+    findOne: jest.fn(),
+    find: jest.fn(),
+  },
+},
+{
+  provide: getRepositoryToken(Tag),
+  useValue: mockTagRepository,
+},
       ],
     }).compile();
 

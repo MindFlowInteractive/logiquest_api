@@ -96,7 +96,7 @@ export class AuthService {
     // 1. Check for existing OAuth provider link
     const existingProvider = await this.oauthProviderRepository.findOne({
       where: { provider: providerType, providerUserId: profile.providerUserId },
-      relations: ['user'],
+      relations: { user: true },
     });
 
     if (existingProvider) {
