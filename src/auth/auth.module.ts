@@ -10,10 +10,11 @@ import { GoogleStrategy } from './strategies/google.strategy';
 import { GithubStrategy } from './strategies/github.strategy';
 import { User } from './entities/user.entity';
 import { OAuthProvider } from './entities/oauth-provider.entity';
+import { RefreshToken } from './entities/refresh-token.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, OAuthProvider]),
+    TypeOrmModule.forFeature([User, OAuthProvider, RefreshToken]),
     PassportModule,
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({

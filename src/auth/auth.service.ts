@@ -10,8 +10,10 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
 import { OAuthProvider, OAuthProviderType } from './entities/oauth-provider.entity';
+import { RefreshToken } from './entities/refresh-token.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { createHash } from 'node:crypto';
 
 interface OAuthProfile {
   provider: string;
@@ -28,6 +30,8 @@ export class AuthService {
     private userRepository: Repository<User>,
     @InjectRepository(OAuthProvider)
     private oauthProviderRepository: Repository<OAuthProvider>,
+    @InjectRepository(RefreshToken)
+    private refreshTokenRepository: Repository<RefreshToken>,
     private jwtService: JwtService,
     private configService: ConfigService,
   ) {}
@@ -41,6 +45,53 @@ export class AuthService {
       expiresIn: this.configService.get('JWT_REFRESH_EXPIRY', '7d'),
     });
     return { accessToken, refreshToken };
+  }
+
+  private hashToken(token: string): string {
+    return createHash('sha256').update(token).digest('hex');
+  }
+
+  private async storeRefreshToken(userId: string, refreshToken: string): Promise<void> {
+    const tokenHash = this.hashToken(refreshToken);
+    const refreshTokenExpiry = this.configService.get<string>('JWT_REFRESH_EXPIRY', '7d');
+    const expiresAt = this.parseExpiry(refreshTokenExpiry);
+
+    const refreshTokenEntity = this.refreshTokenRepository.create({
+      userId,
+      tokenHash,
+      expiresAt,
+    });
+    await this.refreshTokenRepository.save(refreshTokenEntity);
+  }
+
+  private parseExpiry(expiry: string): Date {
+    const now = new Date();
+    const match = expiry.match(/^(\d+)([dhm])$/);
+    
+    if (!match) {
+      // Default to 7 days if format is invalid
+      now.setDate(now.getDate() + 7);
+      return now;
+    }
+
+    const value = parseInt(match[1], 10);
+    const unit = match[2];
+
+    switch (unit) {
+      case 'd':
+        now.setDate(now.getDate() + value);
+        break;
+      case 'h':
+        now.setHours(now.getHours() + value);
+        break;
+      case 'm':
+        now.setMinutes(now.getMinutes() + value);
+        break;
+      default:
+        now.setDate(now.getDate() + 7);
+    }
+
+    return now;
   }
 
   async register(registerDto: RegisterDto) {
@@ -81,7 +132,9 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.generateTokenPair(user);
+    const tokens = this.generateTokenPair(user);
+    await this.storeRefreshToken(user.id, tokens.refreshToken);
+    return tokens;
   }
 
   /**
@@ -104,7 +157,9 @@ export class AuthService {
       existingProvider.displayName = profile.displayName;
       existingProvider.avatarUrl = profile.avatarUrl;
       await this.oauthProviderRepository.save(existingProvider);
-      return this.generateTokenPair(existingProvider.user);
+      const tokens = this.generateTokenPair(existingProvider.user);
+      await this.storeRefreshToken(existingProvider.user.id, tokens.refreshToken);
+      return tokens;
     }
 
     // 2. Try to link to an existing account by email
@@ -145,7 +200,9 @@ export class AuthService {
     });
     await this.oauthProviderRepository.save(oauthProvider);
 
-    return this.generateTokenPair(user);
+    const tokens = this.generateTokenPair(user);
+    await this.storeRefreshToken(user.id, tokens.refreshToken);
+    return tokens;
   }
 
   private async ensureUniqueUsername(base: string): Promise<string> {
@@ -155,5 +212,70 @@ export class AuthService {
       candidate = `${base}${suffix++}`;
     }
     return candidate;
+  }
+
+  async refreshTokens(refreshToken: string) {
+    const tokenHash = this.hashToken(refreshToken);
+
+    const storedToken = await this.refreshTokenRepository.findOne({
+      where: { tokenHash },
+    });
+
+    if (!storedToken) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    if (storedToken.revokedAt) {
+      throw new UnauthorizedException('Refresh token has been revoked');
+    }
+
+    if (storedToken.expiresAt < new Date()) {
+      throw new UnauthorizedException('Refresh token has expired');
+    }
+
+    // Revoke the old token
+    storedToken.revokedAt = new Date();
+    await this.refreshTokenRepository.save(storedToken);
+
+    // Get the user
+    const user = await this.userRepository.findOne({
+      where: { id: storedToken.userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Generate new tokens
+    const newTokens = this.generateTokenPair(user);
+    await this.storeRefreshToken(user.id, newTokens.refreshToken);
+
+    return newTokens;
+  }
+
+  async logout(refreshToken: string) {
+    const tokenHash = this.hashToken(refreshToken);
+
+    const storedToken = await this.refreshTokenRepository.findOne({
+      where: { tokenHash },
+    });
+
+    if (!storedToken) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    storedToken.revokedAt = new Date();
+    await this.refreshTokenRepository.save(storedToken);
+
+    return { message: 'Logged out successfully' };
+  }
+
+  async logoutAll(userId: string) {
+    await this.refreshTokenRepository.update(
+      { userId, revokedAt: null },
+      { revokedAt: new Date() },
+    );
+
+    return { message: 'Logged out from all devices successfully' };
   }
 }
