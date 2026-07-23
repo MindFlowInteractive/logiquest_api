@@ -23,6 +23,12 @@ import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { NftModule } from './nft/nft.module';
 import { CalibrationModule } from './calibration/calibration.module';
 import { RecommendationsModule } from './recommendations/recommendations.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { StreakModule } from './streak/streak.module';
 
 @Module({
   imports: [
@@ -48,7 +54,18 @@ import { RecommendationsModule } from './recommendations/recommendations.module'
     NftModule,
     CalibrationModule,
     RecommendationsModule,
+    ConfigModule.forRoot({ isGlobal: true }),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGODB_URI'),
+      }),
+      inject: [ConfigService],
+    }),
+    ScheduleModule.forRoot(),
+    StreakModule,
   ],
+  controllers: [AppController],
   providers: [EventService],
 })
 export class AppModule implements NestModule {
