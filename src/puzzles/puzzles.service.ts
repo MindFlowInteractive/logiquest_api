@@ -13,6 +13,8 @@ import { UpsertPuzzleTranslationDto } from './dto/upsert-puzzle-translation.dto'
 import { PuzzleTranslationResponseDto } from './dto/puzzle-translation-response.dto';
 import { validateLocale } from '../config/locale.helper';
 import { DEFAULT_LOCALE } from '../config/locale.config';
+import { StreakService } from '../streak/services/streak.service';
+
 
 /** Shape returned by GET /puzzles/:id — localised title/description/hints merged on top. */
 export interface LocalisedPuzzle extends Omit<Puzzle, 'title' | 'description'> {
@@ -33,7 +35,14 @@ export class PuzzlesService {
     private readonly tagRepository: Repository<Tag>,
     @InjectRepository(PuzzleTranslation)
     private readonly translationRepository: Repository<PuzzleTranslation>,
+    private readonly streakService: StreakService,
   ) {}
+
+  async completePuzzle(userId: string, puzzleId: string) {
+  
+    await this.streakService.recordPuzzleCompletion(userId);
+
+  }
 
   async create(dto: CreatePuzzleDto, authorId: string): Promise<Puzzle> {
     let category: Category | null = null;
